@@ -5,6 +5,7 @@
  * Copyright © 2001 Johannes Erdfelt <johannes@erdfelt.com>
  * Copyright © 2013 Nathan Hjelm <hjelmn@mac.com>
  * Copyright © 2012-2013 Hans de Goede <hdegoede@redhat.com>
+ * Copyright © 2013 Martin Marinov <martintzvetomirov@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -1324,6 +1325,14 @@ static int op_open(struct libusb_device_handle *handle)
 		close(hpriv->fd);
 
 	return r;
+}
+
+static int op_open2(struct libusb_device_handle *handle, int fd) {
+	struct linux_device_handle_priv *hpriv = _device_handle_priv(handle);
+
+	hpriv->fd = fd;
+
+	return usbi_add_pollfd(HANDLE_CTX(handle), hpriv->fd, POLLOUT);
 }
 
 static void op_close(struct libusb_device_handle *dev_handle)
@@ -2669,6 +2678,7 @@ const struct usbi_os_backend linux_usbfs_backend = {
 	.get_config_descriptor_by_value = op_get_config_descriptor_by_value,
 
 	.open = op_open,
+	.open2 = op_open2,
 	.close = op_close,
 	.get_configuration = op_get_configuration,
 	.set_configuration = op_set_configuration,

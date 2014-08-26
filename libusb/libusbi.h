@@ -2,6 +2,7 @@
  * Internal header for libusb
  * Copyright © 2007-2009 Daniel Drake <dsd@gentoo.org>
  * Copyright © 2001 Johannes Erdfelt <johannes@erdfelt.com>
+ * Copyright © 2013 Martin Marinov <martintzvetomirov@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -685,6 +686,7 @@ struct usbi_os_backend {
 	 * do this for you.
 	 */
 	int (*open)(struct libusb_device_handle *handle);
+	int (*open2)(struct libusb_device_handle *handle, int fd);
 
 	/* Close a device such that the handle cannot be used again. Your backend
 	 * should destroy any resources that were allocated in the open path.
