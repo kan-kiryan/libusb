@@ -6,6 +6,7 @@
  * Copyright © 2013 Nathan Hjelm <hjelmn@mac.com>
  * Copyright © 2012-2013 Hans de Goede <hdegoede@redhat.com>
  * Copyright © 2013 Martin Marinov <martintzvetomirov@gmail.com>
+ * Copyright © 2015 Kuldeep Singh Dhaka <kuldeepdhaka9@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -380,8 +381,14 @@ static int op_init(struct libusb_context *ctx)
 
 	usbfs_path = find_usbfs_path();
 	if (!usbfs_path) {
+		/* On Android Lollipop (Android 5), their is restriction due to SELinux.
+		 * due to which, all filesystem related query ends up in failure. */
+#if defined(__ANDROID__)
+		usbi_warn(ctx, "could not find usbfs. Android 5+?");
+#else
 		usbi_err(ctx, "could not find usbfs");
 		return LIBUSB_ERROR_OTHER;
+#endif
 	}
 
 	if (monotonic_clkid == -1)
@@ -447,8 +454,14 @@ static int op_init(struct libusb_context *ctx)
 	usbi_mutex_static_lock(&linux_hotplug_startstop_lock);
 	r = LIBUSB_SUCCESS;
 	if (init_count == 0) {
+#if defined(__ANDROID__)
+		if(linux_start_event_monitor() !=  LIBUSB_SUCCESS) {
+			usbi_warn(ctx, "unable to starting hotplug event monitor. Android 5+?");
+		}
+#else
 		/* start up hotplug event handler */
 		r = linux_start_event_monitor();
+#endif
 	}
 	if (r == LIBUSB_SUCCESS) {
 		r = linux_scan_devices(ctx);
@@ -456,8 +469,9 @@ static int op_init(struct libusb_context *ctx)
 			init_count++;
 		else if (init_count == 0)
 			linux_stop_event_monitor();
-	} else
+	} else {
 		usbi_err(ctx, "error starting hotplug event monitor");
+	}
 	usbi_mutex_static_unlock(&linux_hotplug_startstop_lock);
 
 	return r;
@@ -1328,9 +1342,23 @@ static int op_open(struct libusb_device_handle *handle)
 }
 
 static int op_open2(struct libusb_device_handle *handle, int fd) {
+	int r;
 	struct linux_device_handle_priv *hpriv = _device_handle_priv(handle);
 
 	hpriv->fd = fd;
+
+	r = ioctl(hpriv->fd, IOCTL_USBFS_GET_CAPABILITIES, &hpriv->caps);
+	if (r < 0) {
+		if (errno == ENOTTY)
+			usbi_dbg("getcap not available");
+		else
+			usbi_err(HANDLE_CTX(handle), "getcap failed (%d)", errno);
+		hpriv->caps = 0;
+		if (supports_flag_zero_packet)
+			hpriv->caps |= USBFS_CAP_ZERO_PACKET;
+		if (supports_flag_bulk_continuation)
+			hpriv->caps |= USBFS_CAP_BULK_CONTINUATION;
+	}
 
 	return usbi_add_pollfd(HANDLE_CTX(handle), hpriv->fd, POLLOUT);
 }
