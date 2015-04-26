@@ -27,3 +27,25 @@ http://mailing-list.libusb.info
 - Nathan Hjelm <hjelmn@users.sourceforge.net>
 - Chris Dickens <christopher.a.dickens@gmail.com>
 (Please use the mailing list rather than mailing developers directly)
+
+How To for Android
+==================
+
+1. Search for the UsbDevice [1] you are interested in.
+2. Extract the usbfs path [2] from the UsbDevice.
+3. Build a libbox0_device from the path
+    using libusb_get_device2(context, path) [3]
+4. open the UsbDevice [4], you will get UsbDeviceConnection [5].
+5. from the UsbDeviceConnection, extract the fd[6]
+6. now, from the fd and the previously
+    created libusb_device, build a libusb_device_handle
+    by calling libusb_get_device2(dev, handle, fd)[7].
+7. and that all you need.
+
+[1] http://developer.android.com/reference/android/hardware/usb/UsbDevice.html
+[2] http://developer.android.com/reference/android/hardware/usb/UsbDevice.html#getDeviceName%28%29
+[3] https://github.com/kuldeepdhaka/libusb/blob/android-open2/libusb/core.c#L1492
+[4] http://developer.android.com/reference/android/hardware/usb/UsbManager.html#openDevice%28android.hardware.usb.UsbDevice%29
+[5] http://developer.android.com/reference/android/hardware/usb/UsbDeviceConnection.html
+[6] http://developer.android.com/reference/android/hardware/usb/UsbDeviceConnection.html#getFileDescriptor%28%29
+[7] https://github.com/kuldeepdhaka/libusb/blob/android-open2/libusb/core.c#L1267
