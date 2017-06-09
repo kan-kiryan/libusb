@@ -1313,7 +1313,7 @@ int API_EXPORTED libusb_open2(libusb_device *dev, libusb_device_handle **handle,
 	if (!_handle)
 		return LIBUSB_ERROR_NO_MEM;
 
-	r = usbi_mutex_init(&_handle->lock, NULL);
+	r = usbi_mutex_init(&_handle->lock);
 	if (r) {
 		free(_handle);
 		return LIBUSB_ERROR_OTHER;
