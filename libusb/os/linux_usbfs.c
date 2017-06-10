@@ -1390,6 +1390,14 @@ static int op_open2(struct libusb_device_handle *handle, int fd) {
 	return usbi_add_pollfd(HANDLE_CTX(handle), hpriv->fd, POLLOUT);
 }
 
+/**
+ * On linux, get the device number of device within its bus. This
+ * can be used to reconstruct its dev-node path.
+ */
+uint8_t API_EXPORTED lib_usb_linux_get_dev_addr(libusb_device* dev) {
+	return (dev->session_data & 0xFF);
+}
+
 static libusb_device* op_device2(struct libusb_context *ctx, const char *dev_node) {
 	uint8_t busnum, devaddr;
 	unsigned int session_id;
