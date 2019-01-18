@@ -30,6 +30,9 @@ matrix:
           compiler: clang
 
 addons:
+    homebrew:
+        update: true
+        brewfile: true
     apt:
         packages:
             - autoconf
@@ -39,11 +42,6 @@ addons:
             - libudev-dev
         sources:
             - ubuntu-toolchain-r-test
-
-before_install:
-    # brew upgrade sets the return code to 1 if the latest version is already installed. the true command
-    # is used to reset the return code to 0.
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; brew upgrade automake libtool ; true; fi
 
 script:
     - ./autogen.sh && make clean && make

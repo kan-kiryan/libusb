@@ -63,6 +63,16 @@
  */
 #define API_EXPORTED LIBUSB_CALL DEFAULT_VISIBILITY
 
+/* Macro to decorate printf-like functions, in order to get
+ * compiler warnings about format string mistakes.
+ */
+#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 2)
+#define USBI_PRINTFLIKE(formatarg, firstvararg) \
+	__attribute__((__format__ (__printf__, formatarg, firstvararg)))
+#else
+#define USBI_PRINTFLIKE(formatarg, firstvararg)
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -217,10 +227,10 @@ int usbi_vsnprintf(char *dst, size_t size, const char *format, va_list ap);
 #endif /* defined(_MSC_VER) && (_MSC_VER < 1900) */
 
 void usbi_log(struct libusb_context *ctx, enum libusb_log_level level,
-	const char *function, const char *format, ...);
+	const char *function, const char *format, ...) USBI_PRINTFLIKE(4, 5);
 
 void usbi_log_v(struct libusb_context *ctx, enum libusb_log_level level,
-	const char *function, const char *format, va_list args);
+	const char *function, const char *format, va_list args) USBI_PRINTFLIKE(4, 0);
 
 #if !defined(_MSC_VER) || (_MSC_VER >= 1400)
 
@@ -294,6 +304,7 @@ struct libusb_context {
 #if defined(ENABLE_LOGGING) && !defined(ENABLE_DEBUG_LOGGING)
 	enum libusb_log_level debug;
 	int debug_fixed;
+	libusb_log_cb log_handler;
 #endif
 
 	/* internal event pipe, used for signalling occurrence of an internal event. */
@@ -701,6 +712,34 @@ struct usbi_os_backend {
 	 * Optional, should be implemented by backends with hotplug support.
 	 */
 	void (*hotplug_poll)(void);
+
+	/* Wrap a platform-specific device handle for I/O and other USB
+	 * operations. The device handle is preallocated for you.
+	 *
+	 * Your backend should allocate any internal resources required for I/O
+	 * and other operations so that those operations can happen (hopefully)
+	 * without hiccup. This is also a good place to inform libusb that it
+	 * should monitor certain file descriptors related to this device -
+	 * see the usbi_add_pollfd() function.
+	 *
+	 * Your backend should also initialize the device structure
+	 * (dev_handle->dev), which is NULL at the beginning of the call.
+	 *
+	 * This function should not generate any bus I/O and should not block.
+	 *
+	 * This function is called when the user attempts to wrap an existing
+	 * platform-specific device handle for a device.
+	 *
+	 * Return:
+	 * - 0 on success
+	 * - LIBUSB_ERROR_ACCESS if the user has insufficient permissions
+	 * - another LIBUSB_ERROR code on other failure
+	 *
+	 * Do not worry about freeing the handle on failed open, the upper layers
+	 * do this for you.
+	 */
+	int (*wrap_sys_device)(struct libusb_context *ctx,
+		struct libusb_device_handle *dev_handle, intptr_t sys_dev);
 
 	/* Open a device for I/O and other USB operations. The device handle
 	 * is preallocated for you, you can retrieve the device in question

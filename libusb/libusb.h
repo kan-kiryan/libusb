@@ -3,8 +3,8 @@
  * Copyright © 2001 Johannes Erdfelt <johannes@erdfelt.com>
  * Copyright © 2007-2008 Daniel Drake <dsd@gentoo.org>
  * Copyright © 2012 Pete Batard <pete@akeo.ie>
- * Copyright © 2012 Nathan Hjelm <hjelmn@cs.unm.edu>
  * Copyright © 2013 Martin Marinov <martintzvetomirov@gmail.com>
+ * Copyright © 2012-2018 Nathan Hjelm <hjelmn@cs.unm.edu>
  * For more information, please visit: http://libusb.info
  *
  * This library is free software; you can redistribute it and/or
@@ -150,7 +150,7 @@ typedef unsigned __int32  uint32_t;
  * Internally, LIBUSB_API_VERSION is defined as follows:
  * (libusb major << 24) | (libusb minor << 16) | (16 bit incremental)
  */
-#define LIBUSB_API_VERSION 0x01000106
+#define LIBUSB_API_VERSION 0x01000107
 
 /* The following is kept for compatibility, but will be deprecated in the future */
 #define LIBUSBX_API_VERSION LIBUSB_API_VERSION
@@ -1295,10 +1295,35 @@ enum libusb_log_level {
 	LIBUSB_LOG_LEVEL_DEBUG = 4,
 };
 
+/** \ingroup libusb_lib
+ *  Log callback mode.
+ * \see libusb_set_log_cb()
+ */
+enum libusb_log_cb_mode {
+
+	/** Callback function handling all log mesages. */
+	LIBUSB_LOG_CB_GLOBAL = 1 << 0,
+
+	/** Callback function handling context related log mesages. */
+	LIBUSB_LOG_CB_CONTEXT = 1 << 1
+};
+
+/** \ingroup libusb_lib
+ * Callback function for handling log messages.
+ * \param ctx the context which is related to the log message, or NULL if it
+ * is a global log message
+ * \param level the log level, see \ref libusb_log_level for a description
+ * \param str the log message
+ * \see libusb_set_log_cb()
+ */
+typedef void (LIBUSB_CALL *libusb_log_cb)(libusb_context *ctx,
+	enum libusb_log_level level, const char *str);
+
 int LIBUSB_CALL libusb_init(libusb_context **ctx);
 void LIBUSB_CALL libusb_exit(libusb_context *ctx);
 LIBUSB_DEPRECATED_FOR(libusb_set_option)
 void LIBUSB_CALL libusb_set_debug(libusb_context *ctx, int level);
+void LIBUSB_CALL libusb_set_log_cb(libusb_context *ctx, libusb_log_cb cb, int mode);
 const struct libusb_version * LIBUSB_CALL libusb_get_version(void);
 int LIBUSB_CALL libusb_has_capability(uint32_t capability);
 const char * LIBUSB_CALL libusb_error_name(int errcode);
@@ -1364,6 +1389,7 @@ int LIBUSB_CALL libusb_get_max_packet_size(libusb_device *dev,
 int LIBUSB_CALL libusb_get_max_iso_packet_size(libusb_device *dev,
 	unsigned char endpoint);
 
+int LIBUSB_CALL libusb_wrap_sys_device(libusb_context *ctx, intptr_t sys_dev, libusb_device_handle **dev_handle);
 int LIBUSB_CALL libusb_open(libusb_device *dev, libusb_device_handle **dev_handle);
 int LIBUSB_CALL libusb_open2(libusb_device *dev, libusb_device_handle **dev_handle, int fd);
 void LIBUSB_CALL libusb_close(libusb_device_handle *dev_handle);
