@@ -1361,7 +1361,7 @@ int API_EXPORTED libusb_open2(libusb_device *dev, libusb_device_handle **handle,
 {
 	struct libusb_context *ctx = DEVICE_CTX(dev);
 	struct libusb_device_handle *_handle;
-	size_t priv_size = usbi_backend->device_handle_priv_size;
+	size_t priv_size = usbi_backend.device_handle_priv_size;
 	int r;
 	usbi_dbg("open %d.%d", dev->bus_number, dev->device_address);
 
@@ -1379,7 +1379,7 @@ int API_EXPORTED libusb_open2(libusb_device *dev, libusb_device_handle **handle,
 	_handle->claimed_interfaces = 0;
 	memset(&_handle->os_priv, 0, priv_size);
 
-	r = usbi_backend->open2(_handle, fd);
+	r = usbi_backend.open2(_handle, fd);
 	if (r < 0) {
 		usbi_dbg("open %d.%d returns %d", dev->bus_number, dev->device_address, r);
 		libusb_unref_device(dev);
@@ -1588,12 +1588,12 @@ libusb_device * LIBUSB_CALL libusb_get_device(libusb_device_handle *dev_handle)
 DEFAULT_VISIBILITY
 libusb_device * LIBUSB_CALL libusb_get_device2(libusb_context *ctx, const char *dev_node)
 {
-	if(usbi_backend->device2 == NULL) {
+	if(usbi_backend.device2 == NULL) {
 		/* Not supported on this platform */
 		return NULL;
 	}
 
-	return usbi_backend->device2(ctx, dev_node);
+	return usbi_backend.device2(ctx, dev_node);
 }
 
 /** \ingroup libusb_dev
