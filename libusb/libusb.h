@@ -1395,7 +1395,7 @@ int LIBUSB_CALL libusb_open(libusb_device *dev, libusb_device_handle **dev_handl
 int LIBUSB_CALL libusb_open2(libusb_device *dev, libusb_device_handle **dev_handle, int fd);
 void LIBUSB_CALL libusb_close(libusb_device_handle *dev_handle);
 libusb_device * LIBUSB_CALL libusb_get_device(libusb_device_handle *dev_handle);
-libusb_device * LIBUSB_CALL libusb_get_device2(libusb_context *ctx, const char *dev_node);
+libusb_device * LIBUSB_CALL libusb_get_device2(libusb_context *ctx, const char *dev_node, int fd);
 
 int LIBUSB_CALL libusb_set_configuration(libusb_device_handle *dev_handle,
 	int configuration);

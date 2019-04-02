@@ -1165,7 +1165,7 @@ retry:
 }
 
 int linux_enumerate_device(struct libusb_context *ctx,
-	uint8_t busnum, uint8_t devaddr, const char *sysfs_dir)
+	uint8_t busnum, uint8_t devaddr, const char *sysfs_dir, int fd)
 {
 	unsigned long session_id;
 	struct libusb_device *dev;
@@ -1192,7 +1192,7 @@ int linux_enumerate_device(struct libusb_context *ctx,
 	if (!dev)
 		return LIBUSB_ERROR_NO_MEM;
 
-	r = initialize_device(dev, busnum, devaddr, sysfs_dir, -1);
+	r = initialize_device(dev, busnum, devaddr, sysfs_dir, fd);
 	if (r < 0)
 		goto out;
 	r = usbi_sanitize_device(dev);
@@ -1217,7 +1217,7 @@ void linux_hotplug_enumerate(uint8_t busnum, uint8_t devaddr, const char *sys_na
 
 	usbi_mutex_static_lock(&active_contexts_lock);
 	list_for_each_entry(ctx, &active_contexts_list, list, struct libusb_context) {
-		linux_enumerate_device(ctx, busnum, devaddr, sys_name);
+		linux_enumerate_device(ctx, busnum, devaddr, sys_name, -1);
 	}
 	usbi_mutex_static_unlock(&active_contexts_lock);
 }
@@ -1272,7 +1272,7 @@ static int usbfs_scan_busdir(struct libusb_context *ctx, uint8_t busnum)
 			continue;
 		}
 
-		if (linux_enumerate_device(ctx, busnum, (uint8_t) devaddr, NULL)) {
+		if (linux_enumerate_device(ctx, busnum, (uint8_t) devaddr, NULL, -1)) {
 			usbi_dbg("failed to enumerate dir entry %s", entry->d_name);
 			continue;
 		}
@@ -1306,7 +1306,7 @@ static int usbfs_get_device_list(struct libusb_context *ctx)
 			if (!_is_usbdev_entry(entry, &busnum, &devaddr))
 				continue;
 
-			r = linux_enumerate_device(ctx, busnum, (uint8_t) devaddr, NULL);
+			r = linux_enumerate_device(ctx, busnum, (uint8_t) devaddr, NULL, -1);
 			if (r < 0) {
 				usbi_dbg("failed to enumerate dir entry %s", entry->d_name);
 				continue;
@@ -1341,7 +1341,7 @@ static int sysfs_scan_device(struct libusb_context *ctx, const char *devname)
 	}
 
 	return linux_enumerate_device(ctx, busnum & 0xff, devaddr & 0xff,
-		devname);
+		devname, -1);
 }
 
 #if !defined(USE_UDEV)
@@ -1530,17 +1530,17 @@ uint8_t API_EXPORTED lib_usb_linux_get_dev_addr(libusb_device* dev) {
 	return (dev->session_data & 0xFF);
 }
 
-static libusb_device* op_device2(struct libusb_context *ctx, const char *dev_node) {
+static libusb_device* op_device2(struct libusb_context *ctx, const char *dev_node, int fd) {
 	uint8_t busnum, devaddr;
 	unsigned int session_id;
 	if (linux_get_device_address(ctx, 0, &busnum, &devaddr,
-		dev_node, NULL) != LIBUSB_SUCCESS) {
+		dev_node, NULL, fd) != LIBUSB_SUCCESS) {
 		usbi_dbg("failed to get device address (%s)", dev_node);
 		return NULL;
 	}
 
 	/* make sure device is enumerated */
-	if (linux_enumerate_device(ctx, busnum, devaddr, NULL) < 0) {
+	if (linux_enumerate_device(ctx, busnum, devaddr, NULL, fd) < 0) {
 		usbi_dbg("failed to enumerate (%s)", dev_node);
 		return NULL;
 	}

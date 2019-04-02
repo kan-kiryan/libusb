@@ -1586,14 +1586,14 @@ libusb_device * LIBUSB_CALL libusb_get_device(libusb_device_handle *dev_handle)
  * \returns allocate a device from \a dev_node
  */
 DEFAULT_VISIBILITY
-libusb_device * LIBUSB_CALL libusb_get_device2(libusb_context *ctx, const char *dev_node)
+libusb_device * LIBUSB_CALL libusb_get_device2(libusb_context *ctx, const char *dev_node, int fd)
 {
 	if(usbi_backend.device2 == NULL) {
 		/* Not supported on this platform */
 		return NULL;
 	}
 
-	return usbi_backend.device2(ctx, dev_node);
+	return usbi_backend.device2(ctx, dev_node, fd);
 }
 
 /** \ingroup libusb_dev
