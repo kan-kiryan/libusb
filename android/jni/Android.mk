@@ -18,7 +18,7 @@
 
 APP_OPTIM := debug
 
-LOCAL_PATH:= $(call my-dir)
+LOCAL_PATH := $(call my-dir)
 
 include $(LOCAL_PATH)/libusb.mk
 include $(LOCAL_PATH)/examples.mk

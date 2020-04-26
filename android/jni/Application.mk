@@ -21,6 +21,22 @@ APP_ABI := all
 # Robert Atkinson: added APP_PLATFORM 2017.06.09
 APP_PLATFORM := android-21
 
+APP_CFLAGS := \
+  -std=gnu11 \
+  -Wall \
+  -Wextra \
+  -Wshadow \
+  -Wunused \
+  -Wwrite-strings \
+  -Werror=format-security \
+  -Werror=implicit-function-declaration \
+  -Werror=implicit-int \
+  -Werror=init-self \
+  -Werror=missing-prototypes \
+  -Werror=strict-prototypes \
+  -Werror=undef \
+  -Werror=uninitialized
+
 # Workaround for MIPS toolchain linker being unable to find liblog dependency
 # of shared object in NDK versions at least up to r9.
 #
