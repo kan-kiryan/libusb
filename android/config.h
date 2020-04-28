@@ -17,9 +17,6 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/* Define to the attribute for default visibility. */
-#define DEFAULT_VISIBILITY __attribute__ ((visibility ("default")))
-
 /* Define to 1 to start with debug message logging enabled. */
 /* #undef ENABLE_DEBUG_LOGGING */
 

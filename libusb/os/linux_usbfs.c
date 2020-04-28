@@ -550,7 +550,7 @@ static int sysfs_scan_device(struct libusb_context *ctx, const char *devname)
 	if (ret != LIBUSB_SUCCESS)
 		return ret;
 
-	return linux_enumerate_device(ctx, busnum, devaddr, devname);
+	return linux_enumerate_device(ctx, busnum, devaddr, devname, -1);
 }
 
 /* read the bConfigurationValue for a device */
@@ -1198,23 +1198,7 @@ static int usbfs_get_device_list(struct libusb_context *ctx)
 	return r;
 
 }
-#endif
 
-static int sysfs_scan_device(struct libusb_context *ctx, const char *devname)
-{
-	uint8_t busnum, devaddr;
-	int ret;
-
-	ret = linux_get_device_address (ctx, 0, &busnum, &devaddr, NULL, devname, -1);
-	if (LIBUSB_SUCCESS != ret) {
-		return ret;
-	}
-
-	return linux_enumerate_device(ctx, busnum & 0xff, devaddr & 0xff,
-		devname, -1);
-}
-
-#if !defined(USE_UDEV)
 static int sysfs_get_device_list(struct libusb_context *ctx)
 {
 	DIR *devices = opendir(SYSFS_DEVICE_PATH);
@@ -1363,7 +1347,7 @@ static int op_open(struct libusb_device_handle *handle)
 
 static int op_open2(struct libusb_device_handle *handle, int fd) {
 	int r;
-	struct linux_device_handle_priv *hpriv = _device_handle_priv(handle);
+	struct linux_device_handle_priv *hpriv = usbi_get_device_handle_priv(handle);
 
 	hpriv->fd = fd;
 
@@ -1373,11 +1357,7 @@ static int op_open2(struct libusb_device_handle *handle, int fd) {
 			usbi_dbg("getcap not available");
 		else
 			usbi_err(HANDLE_CTX(handle), "getcap failed (%d)", errno);
-		hpriv->caps = 0;
-		if (supports_flag_zero_packet)
-			hpriv->caps |= USBFS_CAP_ZERO_PACKET;
-		if (supports_flag_bulk_continuation)
-			hpriv->caps |= USBFS_CAP_BULK_CONTINUATION;
+		hpriv->caps = USBFS_CAP_BULK_CONTINUATION;
 	}
 
 	return usbi_add_pollfd(HANDLE_CTX(handle), hpriv->fd, POLLOUT);

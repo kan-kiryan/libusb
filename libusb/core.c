@@ -1367,7 +1367,7 @@ int API_EXPORTED libusb_open2(libusb_device *dev, libusb_device_handle **handle,
 	int r;
 	usbi_dbg("open %d.%d", dev->bus_number, dev->device_address);
 
-	_handle = malloc(sizeof(*_handle) + priv_size);
+	_handle = calloc(1, PTR_ALIGN(sizeof(*_handle)) + priv_size);
 	if (!_handle)
 		return LIBUSB_ERROR_NO_MEM;
 
@@ -1378,8 +1378,6 @@ int API_EXPORTED libusb_open2(libusb_device *dev, libusb_device_handle **handle,
 	}
 
 	_handle->dev = libusb_ref_device(dev);
-	_handle->claimed_interfaces = 0;
-	memset(&_handle->os_priv, 0, priv_size);
 
 	r = usbi_backend.open2(_handle, fd);
 	if (r < 0) {
