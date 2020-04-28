@@ -1388,7 +1388,7 @@ static libusb_device* op_device2(struct libusb_context *ctx, const char *dev_nod
 
 	/* retrive the device */
 	session_id = busnum << 8 | devaddr;
-	usbi_dbg("busnum %d devaddr %d session_id %ld", busnum, devaddr,
+	usbi_dbg("busnum %d devaddr %d session_id %d", busnum, devaddr,
 		session_id);
 
 	return usbi_get_device_by_session_id(ctx, session_id);
