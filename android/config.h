@@ -22,7 +22,6 @@
 
 /* Message logging */
 #define ENABLE_LOGGING 1
-#define ENABLE_DEBUG_LOGGING 1
 
 /* Define to 1 if you want to use Java enumeration */
 #define JAVA_ENUMERATION 1
