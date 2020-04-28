@@ -93,20 +93,26 @@ static unsigned int max_iso_packet_len = 0;
 /* is sysfs available (mounted) ? */
 static int sysfs_available = -1;
 
+#if !defined(JAVA_ENUMERATION)
 /* how many times have we initted (and not exited) ? */
 static int init_count = 0;
 
 /* Serialize hotplug start/stop */
 static usbi_mutex_static_t linux_hotplug_startstop_lock = USBI_MUTEX_INITIALIZER;
+#endif // JAVA_ENUMERATION
 /* Serialize scan-devices, event-thread, and poll */
 usbi_mutex_static_t linux_hotplug_lock = USBI_MUTEX_INITIALIZER;
 
+#if !defined(JAVA_ENUMERATION)
 static int linux_scan_devices(struct libusb_context *ctx);
+#endif // JAVA_ENUMERATION
 static int detach_kernel_driver_and_claim(struct libusb_device_handle *, int);
 
+#if !defined(JAVA_ENUMERATION)
 #if !defined(HAVE_LIBUDEV)
 static int linux_default_scan_devices(struct libusb_context *ctx);
 #endif
+#endif // JAVA_ENUMERATION
 
 struct kernel_version {
 	int major;
@@ -382,8 +388,9 @@ static int op_init(struct libusb_context *ctx)
 		}
 	}
 
-	usbi_mutex_static_lock(&linux_hotplug_startstop_lock);
 	r = LIBUSB_SUCCESS;
+#if !defined(JAVA_ENUMERATION)
+	usbi_mutex_static_lock(&linux_hotplug_startstop_lock);
 	if (init_count == 0) {
 #if defined(__ANDROID__)
 		if(linux_start_event_monitor() !=  LIBUSB_SUCCESS) {
@@ -404,6 +411,7 @@ static int op_init(struct libusb_context *ctx)
 		usbi_err(ctx, "error starting hotplug event monitor");
 	}
 	usbi_mutex_static_unlock(&linux_hotplug_startstop_lock);
+#endif // JAVA_ENUMERATION
 
 	return r;
 }
@@ -411,6 +419,7 @@ static int op_init(struct libusb_context *ctx)
 static void op_exit(struct libusb_context *ctx)
 {
 	UNUSED(ctx);
+#if !defined(JAVA_ENUMERATION)
 	usbi_mutex_static_lock(&linux_hotplug_startstop_lock);
 	assert(init_count != 0);
 	if (!--init_count) {
@@ -418,8 +427,10 @@ static void op_exit(struct libusb_context *ctx)
 		linux_stop_event_monitor();
 	}
 	usbi_mutex_static_unlock(&linux_hotplug_startstop_lock);
+#endif // JAVA_ENUMERATION
 }
 
+#if !defined(JAVA_ENUMERATION)
 static int linux_scan_devices(struct libusb_context *ctx)
 {
 	int ret;
@@ -436,6 +447,7 @@ static int linux_scan_devices(struct libusb_context *ctx)
 
 	return ret;
 }
+#endif // JAVA_ENUMERATION
 
 static void op_hotplug_poll(void)
 {
@@ -1094,6 +1106,7 @@ void linux_device_disconnected(uint8_t busnum, uint8_t devaddr)
 	usbi_mutex_static_unlock(&active_contexts_lock);
 }
 
+#if !defined(JAVA_ENUMERATION)
 #if !defined(HAVE_LIBUDEV)
 static int parse_u8(const char *str, uint8_t *val_p)
 {
@@ -1248,6 +1261,7 @@ static int linux_default_scan_devices(struct libusb_context *ctx)
 		return usbfs_get_device_list(ctx);
 }
 #endif
+#endif // JAVA_ENUMERATION
 
 static int initialize_handle(struct libusb_device_handle *handle, int fd)
 {
